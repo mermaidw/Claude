@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>背部+手臂专项</title>
+  <style>
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;background:linear-gradient(135deg,#e0c3ff 0%,#ffccf9 100%);}
+    .container{max-width:400px;margin:auto;padding:12px}
+    .card{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+    .hdr{display:flex;justify-content:space-between;align-items:center}
+    .notes{background:#fef3c7;padding:8px;border-radius:8px;font-size:13px;color:#92400e;margin:8px 0}
+    .set{display:flex;align-items:center;gap:8px;margin:6px 0}
+    .set span{min-width:45px;font-size:13px}
+    .set input{width:50px;padding:4px;border:1px solid #ccc;border-radius:4px}
+    .btn{width:24px;height:24px;border:none;border-radius:50%;cursor:pointer;font-size:14px}
+    .done{background:#4ade80;color:#fff}
+    .todo{background:#e5e7eb}
+    #progress{margin-top:8px}
+    #bar{background:#8b5cf6;height:4px;border-radius:2px;transition:width .3s}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h2>💪 背部+手臂专项</h2>
+    <p>99块健身房首秀</p>
+    <div id="progress">
+      <span id="counter">0/21</span>
+      <div style="background:#e5e7eb;height:4px;border-radius:2px">
+        <div id="bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="card" style="text-align:center;font-size:13px;color:#6b7280">
+    记得热身！左肩不适立即调整重量<br/>
+    <span style="color:#8b5cf6;font-weight:bold">练完记得反馈给阿焱～</span>
+  </div>
+</div>
+
+<script>
+const workout = {
+  "单臂哑铃划船": {
+    target: "背阔肌、菱形肌、中斜方肌",
+    notes: "左侧用轻重量，背部收紧，肘部贴身体",
+    sets: Array(4).fill({ reps: "10-12", w: "", done: false })
+  },
+  "坐姿绳索划船": {
+    target: "背阔肌中下部、菱形肌",
+    notes: "肩胛骨后收，胸挺直，拉到最后挤压背部",
+    sets: Array(4).fill({ reps: "12-15", w: "", done: false })
+  },
+  "器械坐姿划船": {
+    target: "背阔肌、中斜方肌",
+    notes: "胸贴垫子，动作慢一点，感受背部收缩",
+    sets: Array(3).fill({ reps: "12-15", w: "", done: false })
+  },
+  "高位下拉": {
+    target: "背阔肌上部",
+    notes: "轻重量！左肩有感觉就停，重量别贪心",
+    sets: Array(2).fill({ reps: "15", w: "", done: false })
+  },
+  "坐姿哑铃弯举": {
+    target: "肱二头肌",
+    notes: "控制节奏，顶峰收缩",
+    sets: Array(3).fill({ reps: "12-15", w: "", done: false })
+  },
+  "绳索三头下压": {
+    target: "肱三头肌",
+    notes: "肘部固定，小臂发力",
+    sets: Array(3).fill({ reps: "15-20", w: "", done: false })
+  },
+  "锤式弯举": {
+    target: "肱二头肌、肱桡肌",
+    notes: "解决小臂握不住的问题",
+    sets: Array(2).fill({ reps: "12", w: "", done: false })
+  }
+};
+
+function save(){localStorage.setItem('wt',JSON.stringify(workout));}
+function load(){
+  const s=localStorage.getItem('wt');
+  if(s) Object.assign(workout,JSON.parse(s));
+}
+
+function render(){
+  load();
+  let done=0,total=0;
+  const list=document.getElementById('list');
+  list.innerHTML='';
+  for(const[name,info] of Object.entries(workout)){
+    total+=info.sets.length;
+    done+=info.sets.filter(s=>s.done).length;
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <div class="hdr" onclick="toggle('${name}')">
+        <div>
+          <strong>${name}</strong><br/>
+          <small style="color:#8b5cf6">${info.target}</small>
+        </div>
+        <span>${info.sets.filter(s=>s.done).length}/${info.sets.length}</span>
+      </div>
+      <div id="${name}-sets" style="display:none">
+        <div class="notes">${info.notes}</div>
+        ${info.sets.map((s,i)=>`
+          <div class="set">
+            <span>第${i+1}组 ${s.reps}次</span>
+            <input type="text" placeholder="kg" value="${s.w}" 
+              onchange="setW('${name}',${i},this.value)">
+            <button class="${s.done?'done':'todo'}" onclick="toggleDone('${name}',${i})">✓</button>
+          </div>
+        `).join('')}
+      </div>`;
+    list.appendChild(card);
+  }
+  document.getElementById('counter').textContent=`${done}/${total}`;
+  document.getElementById('bar').style.width=`${total?done/total*100:0}%`;
+}
+
+function toggle(name){
+  const el=document.getElementById(`${name}-sets`);
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+function setW(name,i,val){
+  workout[name].sets[i].w=val;
+  save();
+}
+function toggleDone(name,i){
+  workout[name].sets[i].done=!workout[name].sets[i].done;
+  render();
+}
+render();
+</script>
+</body>
+</html>
