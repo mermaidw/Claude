@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>臀腿专项</title>
+  <style>
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+      background:linear-gradient(135deg,#ffeaa7 0%,#fab1a0 100%);
+      min-height:100vh;
+    }
+    .container{max-width:400px;margin:auto;padding:12px}
+    .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .back-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#e17055;
+      text-decoration:none;
+      font-size:14px;
+      margin-bottom:16px;
+      padding:8px 12px;
+      background:#fff;
+      border-radius:8px;
+      box-shadow:0 1px 4px rgba(0,0,0,.1);
+    }
+    .hdr{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:4px 0;}
+    .hdr:hover{background:#f9fafb;border-radius:8px;padding:8px;}
+    .notes{background:#ffeaa7;padding:12px;border-radius:8px;font-size:13px;color:#d63031;margin:12px 0}
+    .set{display:flex;align-items:center;gap:8px;margin:8px 0;padding:8px;background:#f9fafb;border-radius:8px}
+    .set span{min-width:45px;font-size:13px;color:#6b7280}
+    .set input{width:60px;padding:6px;border:1px solid #d1d5db;border-radius:6px;font-size:14px}
+    .set input:focus{outline:none;border-color:#e17055;box-shadow:0 0 0 2px rgba(225,112,85,.1)}
+    .btn{width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;font-size:16px;transition:all 0.2s}
+    .done{background:#00b894;color:#fff}
+    .todo{background:#e5e7eb;color:#9ca3af}
+    .todo:hover{background:#d1d5db}
+    #progress{margin-top:12px}
+    #bar{background:#e17055;height:6px;border-radius:3px;transition:width .3s}
+    .exercise-title{font-weight:bold;color:#2d3436;margin-bottom:4px}
+    .exercise-target{font-size:13px;color:#e17055}
+    .counter{background:#e17055;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold}
+  </style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">
+    ← 返回主页
+  </a>
+  
+  <div class="card">
+    <h2>🍑 臀腿专项</h2>
+    <p>99块健身房训练 - 专攻臀型塑造</p>
+    <div id="progress">
+      <span id="counter" class="counter">0/19</span>
+      <div style="background:#e5e7eb;height:6px;border-radius:3px;margin-top:8px">
+        <div id="bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="card" style="text-align:center;font-size:13px;color:#6b7280">
+    重点：臀部主导，避免股四头肌代偿<br/>
+    <span style="color:#e17055;font-weight:bold;margin-top:8px;display:block">练完记得反馈给阿焱～</span>
+  </div>
+</div>
+
+<script>
+// 创建独立的对象数组，避免共享引用
+function createSets(count, reps) {
+  return Array.from({length: count}, () => ({reps, w: "", done: false}));
+}
+
+const workout = {
+  "外展器械激活": {
+    target: "臀中肌激活",
+    notes: "轻重量，重点找臀中肌发力感觉，每次顶峰收缩1秒",
+    sets: createSets(3, "20")
+  },
+  "改良臀桥": {
+    target: "臀大肌激活", 
+    notes: "俯卧勾腿机做臀桥，髋部顶起，感受臀大肌收缩",
+    sets: createSets(2, "15")
+  },
+  "倒蹬机": {
+    target: "臀大肌、腘绳肌",
+    notes: "脚位调高调宽，重心后坐，脚跟发力，避免膝盖内扣",
+    sets: createSets(4, "12-15")
+  },
+  "哑铃相扑深蹲": {
+    target: "臀大肌、臀中肌",
+    notes: "宽距站立，脚尖外展30°，重心后坐，臀部主导",
+    sets: createSets(3, "15")
+  },
+  "哑铃直腿硬拉": {
+    target: "臀大肌、腘绳肌",
+    notes: "髋关节屈伸，膝盖微屈，感受臀部拉伸和收缩",
+    sets: createSets(3, "12")
+  },
+  "单腿臀桥": {
+    target: "臀大肌单侧强化",
+    notes: "如有长凳，单腿支撑做臀桥，每边分别做",
+    sets: createSets(4, "12")
+  },
+  "外展器械加强": {
+    target: "臀中肌塑形",
+    notes: "比激活组稍重，专注臀部外侧收缩，慢起慢放",
+    sets: createSets(3, "15")
+  }
+};
+
+function save(){
+  try {
+    localStorage.setItem('workout-glute-legs', JSON.stringify(workout));
+  } catch(e) {
+    console.log('保存失败:', e);
+  }
+}
+
+function load(){
+  try {
+    const saved = localStorage.getItem('workout-glute-legs');
+    if(saved) {
+      const data = JSON.parse(saved);
+      // 合并保存的数据到当前workout
+      Object.keys(workout).forEach(key => {
+        if(data[key] && data[key].sets) {
+          workout[key].sets = data[key].sets;
+        }
+      });
+    }
+  } catch(e) {
+    console.log('加载失败:', e);
+  }
+}
+
+function render(){
+  load();
+  let done = 0, total = 0;
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  
+  Object.entries(workout).forEach(([name, info]) => {
+    total += info.sets.length;
+    done += info.sets.filter(s => s.done).length;
+    
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="hdr" onclick="toggle('${name}')">
+        <div>
+          <div class="exercise-title">${name}</div>
+          <div class="exercise-target">${info.target}</div>
+        </div>
+        <span class="counter">${info.sets.filter(s => s.done).length}/${info.sets.length}</span>
+      </div>
+      <div id="${name}-sets" style="display:none">
+        <div class="notes">${info.notes}</div>
+        ${info.sets.map((s, i) => `
+          <div class="set">
+            <span>第${i+1}组</span>
+            <span>${s.reps}次</span>
+            <input type="text" placeholder="kg" value="${s.w}" 
+              onchange="setWeight('${name}', ${i}, this.value)">
+            <button class="btn ${s.done ? 'done' : 'todo'}" 
+              onclick="toggleDone('${name}', ${i})">✓</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+  
+  document.getElementById('counter').textContent = `${done}/${total}`;
+  document.getElementById('bar').style.width = `${total ? (done/total)*100 : 0}%`;
+}
+
+function toggle(name){
+  const el = document.getElementById(`${name}-sets`);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function setWeight(name, index, value){
+  workout[name].sets[index].w = value;
+  save();
+}
+
+function toggleDone(name, index){
+  workout[name].sets[index].done = !workout[name].sets[index].done;
+  save();
+  render();
+}
+
+// 初始化
+render();
+</script>
+</body>
+</html>
